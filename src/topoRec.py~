@@ -1,0 +1,37 @@
+import numpy as np
+import os
+import re
+
+topo = "ieee13"
+
+files = os.listdir("../"+topo)
+
+csvList = []
+for f in files:
+    if f.endswith(".csv"):
+        csvList.append(f)
+
+nodeList = [re.findall('\d+',csv) for csv in csvList]
+
+rawData = []
+
+for csv in csvList:
+    csvData = np.genfromtxt("../"+topo+"/"+csv, delimiter=',')
+    rawData.append(csvData[:,1:])
+
+rawData = np.array(rawData)
+
+# axis shifting for the ease of corelation matrix calc
+corrData = np.moveaxis(rawData,-1,0)
+
+corrMats = []
+
+for attr in corrData:
+    corrMats.append(np.corrcoef(attr))
+
+corrMats = np.array(corrMats)
+
+corrMats[np.isnan(corrMats)] = 0
+
+avgCorr = np.mean(corrMats, axis=0)
+np.fill_diagonal(avgCorr, 1)
